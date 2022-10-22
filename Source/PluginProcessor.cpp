@@ -169,13 +169,12 @@ void BigDistEnergyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         auto* channelData = buffer.getWritePointer (channel);
 
         for (int sample = 0; sample < buffer.getNumSamples(); sample++) {
-            /*
             // TYPES: 1. square, 2. sin fold, 3. soft clip
 
             float dry = channelData[sample];
 
             // Input gain is applied
-            channelData[sample] = channelData[sample] * gain_in;
+            channelData[sample] = channelData[sample] * *gainIn;
 
             // TODO: save state between DAW restarts
             // TODO: Two distortion modules in parallel
@@ -184,22 +183,22 @@ void BigDistEnergyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
             float ACTIVE_THRESHOLD = 0.01; //dont know what value to pick exactly
 
-            switch (type) {
+            switch ((int) *type) {
             case 1:
                 // Square waveshaper
-                if (abs(channelData[sample]) >= ACTIVE_THRESHOLD) channelData[sample] = (channelData[sample] >= (distAmt - 0.5) / 4 ? 1.f : -1.f);
+                if (abs(channelData[sample]) >= ACTIVE_THRESHOLD) channelData[sample] = (channelData[sample] >= (*distAmt - 0.5) / 4 ? 1.f : -1.f);
                 break;
             case 2:
                 // Sine foldover, to expand watch 10:27 in fifty shades of distortion
-                if (abs(channelData[sample]) >= 1 - distAmt) {
-                    for (int i = 1; i <= color; i++) {
+                if (abs(channelData[sample]) >= 1 - *distAmt) {
+                    for (int i = 1; i <= *color; i++) {
                         channelData[sample] += sin(i * channelData[sample]);
                     }
                 }
                 break;
             case 3:
                 // Soft clip
-                channelData[sample] = 2 / PI * atan(distAmt * 100 * channelData[sample]);
+                channelData[sample] = 2 / PI * atan(*distAmt * 100 * channelData[sample]);
                 break;
             }
 
@@ -207,8 +206,7 @@ void BigDistEnergyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
 
             // WET/DRY mix
-            channelData[sample] = channelData[sample] * wetAmt + dry * (1 - wetAmt);
-            */
+            channelData[sample] = channelData[sample] * *wetAmt + dry * (1 - *wetAmt);
         }
     }
 }
