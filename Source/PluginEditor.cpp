@@ -14,8 +14,8 @@
 #define AMT_TYPES 3
 
 //==============================================================================
-BigDistEnergyAudioProcessorEditor::BigDistEnergyAudioProcessorEditor (BigDistEnergyAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+BigDistEnergyAudioProcessorEditor::BigDistEnergyAudioProcessorEditor (BigDistEnergyAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
+    : AudioProcessorEditor (&p), audioProcessor (p), state(vts)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -25,45 +25,50 @@ BigDistEnergyAudioProcessorEditor::BigDistEnergyAudioProcessorEditor (BigDistEne
     distSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     distSlider.setPopupDisplayEnabled(true, false, this);
     distSlider.setRange(0.0, 1.0, 0.01);
-    distSlider.setValue(audioProcessor.distAmt);
+    distSlider.setValue(*(audioProcessor.distAmt));
     wetSlider.setTextValueSuffix(" DIST AMT");
     distSlider.addListener(this);
     addAndMakeVisible(&distSlider);
+    distSliderAttachment.reset(new SliderAttachment(state, "distAmt", distSlider));
 
     wetSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     wetSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     wetSlider.setPopupDisplayEnabled(true, false, this);
     wetSlider.setRange(0.0, 1.0, 0.01);
-    wetSlider.setValue(audioProcessor.wetAmt);
+    wetSlider.setValue(*(audioProcessor.wetAmt));
     wetSlider.setTextValueSuffix(" % WET");
     wetSlider.addListener(this);
     addAndMakeVisible(&wetSlider);
+    wetSliderAttachment.reset(new SliderAttachment(state, "wetAmt", wetSlider));
 
     gainInSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     gainInSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     gainInSlider.setPopupDisplayEnabled(true, false, this);
     gainInSlider.setRange(0.0, 10.0, 0.1);
-    gainInSlider.setValue(audioProcessor.gain_in);
+    gainInSlider.setValue(*(audioProcessor.gainIn));
     gainInSlider.setTextValueSuffix(" INPUT GAIN");
     gainInSlider.addListener(this);
     addAndMakeVisible(&gainInSlider);
+    gainInSliderAttachment.reset(new SliderAttachment(state, "gainIn", gainInSlider));
 
     colorSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     colorSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     colorSlider.setPopupDisplayEnabled(true, false, this);
     colorSlider.setRange(0.0, 20.0, 1);
-    colorSlider.setValue(audioProcessor.color);
+    colorSlider.setValue(*(audioProcessor.color));
     colorSlider.setTextValueSuffix(" COLOR");
     colorSlider.addListener(this);
     addAndMakeVisible(&colorSlider);
+    colorSliderAttachment.reset(new SliderAttachment(state, "color", colorSlider));
 
     juce::String types[AMT_TYPES] = { "square", "sin fold", "soft clip" };
     for (int i = 0; i < AMT_TYPES; i++) {
         typeMenu.addItem(types[i], i + 1);
     }
-    typeMenu.setSelectedId(1);
+    typeMenu.setSelectedId(*(audioProcessor.type));
     typeMenu.addListener(this);
     addAndMakeVisible(&typeMenu);
+    typeMenuAttachment.reset(new ComboBoxAttachment(state, "type", typeMenu));
 }
 
 BigDistEnergyAudioProcessorEditor::~BigDistEnergyAudioProcessorEditor()
@@ -71,14 +76,14 @@ BigDistEnergyAudioProcessorEditor::~BigDistEnergyAudioProcessorEditor()
 }
 
 void BigDistEnergyAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
-    audioProcessor.distAmt = distSlider.getValue();
-    audioProcessor.wetAmt = wetSlider.getValue();
-    audioProcessor.gain_in = gainInSlider.getValue();
-    audioProcessor.color = colorSlider.getValue();
+    *(audioProcessor.distAmt) = distSlider.getValue();
+    *(audioProcessor.wetAmt) = wetSlider.getValue();
+    *(audioProcessor.gainIn) = gainInSlider.getValue();
+    *(audioProcessor.color) = colorSlider.getValue();
 }
 
 void BigDistEnergyAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
-    audioProcessor.type = typeMenu.getSelectedId();
+    *(audioProcessor.type) = typeMenu.getSelectedId();
 }
 
 //==============================================================================

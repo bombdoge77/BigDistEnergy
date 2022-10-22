@@ -13,17 +13,29 @@
 
 //==============================================================================
 BigDistEnergyAudioProcessor::BigDistEnergyAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
-#endif
+    : parameters(*this, nullptr, juce::Identifier("BDE_STATE"), {
+            std::make_unique<juce::AudioParameterFloat>("distAmt", "Distortion Amount", 0.0f, 1.0f, 0.5f),
+            std::make_unique<juce::AudioParameterFloat>("wetAmt", "Wet Amount", 0.0f, 1.0f, 0.5f),
+            std::make_unique<juce::AudioParameterFloat>("gainIn", "Input Gain", 0.0f, 10.0f, 1.0f),
+            std::make_unique<juce::AudioParameterFloat>("color", "Color", 0.0f, 20.0f, 1.0f),
+            std::make_unique<juce::AudioParameterInt>("type", "Distortion Type", 1, 3, 1)
+        }),
+    #ifndef JucePlugin_PreferredChannelConfigurations
+    AudioProcessor(BusesProperties()
+    #if ! JucePlugin_IsMidiEffect
+    #if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+    #endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+    #endif
+    )
+    #endif
 {
+    distAmt = parameters.getRawParameterValue("distAmt");
+    wetAmt = parameters.getRawParameterValue("wetAmt");
+    gainIn = parameters.getRawParameterValue("gainIn");
+    color = parameters.getRawParameterValue("color");
+    type = parameters.getRawParameterValue("type");
 }
 
 BigDistEnergyAudioProcessor::~BigDistEnergyAudioProcessor()
@@ -157,6 +169,7 @@ void BigDistEnergyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         auto* channelData = buffer.getWritePointer (channel);
 
         for (int sample = 0; sample < buffer.getNumSamples(); sample++) {
+            /*
             // TYPES: 1. square, 2. sin fold, 3. soft clip
 
             float dry = channelData[sample];
@@ -195,6 +208,7 @@ void BigDistEnergyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
             // WET/DRY mix
             channelData[sample] = channelData[sample] * wetAmt + dry * (1 - wetAmt);
+            */
         }
     }
 }
@@ -207,7 +221,7 @@ bool BigDistEnergyAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* BigDistEnergyAudioProcessor::createEditor()
 {
-    return new BigDistEnergyAudioProcessorEditor (*this);
+    return new BigDistEnergyAudioProcessorEditor (*this, parameters);
 }
 
 //==============================================================================
@@ -216,12 +230,22 @@ void BigDistEnergyAudioProcessor::getStateInformation (juce::MemoryBlock& destDa
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+
+    auto state = parameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void BigDistEnergyAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(parameters.state.getType()))
+            parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================

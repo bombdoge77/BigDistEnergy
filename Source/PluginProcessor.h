@@ -20,11 +20,16 @@ public:
     BigDistEnergyAudioProcessor();
     ~BigDistEnergyAudioProcessor() override;
 
-    float distAmt = 0.5;
+    std::atomic<float>* distAmt = nullptr;
+    std::atomic<float>* wetAmt = nullptr;
+    std::atomic<float>* gainIn = nullptr;
+    std::atomic<float>* color = nullptr;
+    std::atomic<float>* type = nullptr;
+    /*float distAmt = 0.5;
     float wetAmt = 0.5;
     float gain_in = 1;
     float color = 1;
-    int type = 1;
+    int type = 1;*/
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -60,6 +65,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    juce::AudioProcessorValueTreeState parameters;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BigDistEnergyAudioProcessor)
 };
