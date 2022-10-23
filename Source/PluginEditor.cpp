@@ -101,29 +101,36 @@ void BigDistEnergyAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    int maxDim;
+    juce::FlexBox fbMain;
+    fbMain.flexDirection = juce::FlexBox::Direction::column;
+    fbMain.flexWrap = juce::FlexBox::Wrap::noWrap;
+    fbMain.alignContent = juce::FlexBox::AlignContent::center;
+    fbMain.justifyContent = juce::FlexBox::JustifyContent::flexStart;
 
-    if (WIDTH >= HEIGHT) {
-        maxDim = WIDTH;
-    }
-    else {
-        maxDim = HEIGHT;
-    }
+    juce::FlexBox fbKnob;
+    fbKnob.flexDirection = juce::FlexBox::Direction::row;
+    fbKnob.flexWrap = juce::FlexBox::Wrap::noWrap;
+    fbKnob.alignContent = juce::FlexBox::AlignContent::center;
+    fbKnob.justifyContent = juce::FlexBox::JustifyContent::center;
 
-    float knobAmt = 4;
-    float knobScale = 1.f/(knobAmt + 1); //decimal percentage of largest dimension
-    int knobSize = maxDim*knobScale;
-    int margin = knobSize / 2;
-    int space = (WIDTH - margin * 2) / knobAmt;
+    int amtItems = 4;
+    int knobSize = getWidth() / amtItems;
 
-    //N * WIDTH / knobAmt
+    juce::Array<juce::FlexItem> knobs;
+    knobs.add(juce::FlexItem(knobSize, knobSize, distSlider));
+    knobs.add(juce::FlexItem(knobSize, knobSize, wetSlider));
+    knobs.add(juce::FlexItem(knobSize, knobSize, gainInSlider));
+    knobs.add(juce::FlexItem(knobSize, knobSize, colorSlider));
+    fbKnob.items = knobs;
 
-    distSlider.setBounds(margin + 1 * space, HEIGHT / 2 - knobSize /2, knobSize, knobSize);
-    wetSlider.setBounds(margin + 3 * space, HEIGHT / 2 - knobSize / 2, knobSize, knobSize);
-    gainInSlider.setBounds(margin + 0 * space, HEIGHT / 2 - knobSize / 2, knobSize, knobSize);
-    colorSlider.setBounds(margin + 2 * space, HEIGHT / 2 - knobSize / 2, knobSize, knobSize);
+    juce::Array<juce::FlexItem> mainContent;
 
-    int dropDownWidth = WIDTH / 4;
-    int dropDownHeight = 30;
-    typeMenu.setBounds(WIDTH / 2 - dropDownWidth / 2, 0.1 * knobSize, dropDownWidth, dropDownHeight);
+    juce::FlexItem dropDown = juce::FlexItem(getWidth(), knobSize / 4, typeMenu);
+    dropDown.margin = juce::FlexItem::Margin(0, 0, knobSize / 4, 0);
+
+    mainContent.add(dropDown);
+    mainContent.add(juce::FlexItem(getWidth(), knobSize, fbKnob));
+    fbMain.items = mainContent;
+
+    fbMain.performLayout(getLocalBounds());
 }

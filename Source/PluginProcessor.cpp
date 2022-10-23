@@ -176,7 +176,6 @@ void BigDistEnergyAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             // Input gain is applied
             channelData[sample] = channelData[sample] * *gainIn;
 
-            // TODO: save state between DAW restarts
             // TODO: Two distortion modules in parallel
             // TODO: Compressor that controls distortion, look up VCA
             // TODO: Use input signal (volume) to modulate distortion, look up envelope followers
